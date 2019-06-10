@@ -1,0 +1,104 @@
+<html>
+<head>
+	<script type = "text/javascript" src = "./vendilator_lib.js"></script>
+</head>
+<body>
+	
+	<script type = "text/javascript" >
+
+		var vending=true;
+
+		init(null, document);
+
+		// Init amount of current paid
+		var current_coin = 0;
+		// Init value of select product
+		var current_select = { letter: null, number: null };
+
+		//main event loop for vending machine
+		while (vending){
+			let btn = getInput();
+			let checkOut = false;
+			// If currently handling a coin event
+			// 1. Show balance
+			if (btn.type == TYPE_COIN) {
+				current_coin += btn.value;
+				print('Paid: ' + current_coin);				
+			// If currently handling a btn event
+			} else if (btn.type == TYPE_BUTTON) {
+				// If btn is cancel
+				// 1. return all the coint
+				// 2. init select
+				// 3. init coin
+				if (btn.value == 'CANCEL') {
+					returnCurrency(current_coin);
+					current_select = { letter: null, number: null };
+					current_coin = 0;
+					// If btn is letter
+					// 1. Store the letter in select
+				} else if (isNaN(btn.value)) {
+					current_select.letter = btn.value;
+					// If btn is number
+					// 1. Store the number in select
+				} else {
+					current_select.number = btn.value;
+				}
+			}
+
+			// 1. Check if we have a product in cache, then we get the price by product letter
+			// 2. If we have enough coin, then vend product process
+			//    2.1 vend product
+			//    2.2 return extra amount
+			//    2.3 init select
+			//    2.4 init coin
+			let price = getPriceByLetter(current_select.letter);
+			checkOut = checkToVend(current_select, current_coin, price);
+			if (checkOut) {
+				returnCurrency((current_coin - price).toFixed(2));
+				current_select = { letter: null, number: null };
+				current_coin = 0;
+			}
+		}
+
+		/*
+		 * Get Price by Product Letter
+		 * @param letter
+		 * @return Int Product Price
+		 */
+		function getPriceByLetter(letter) {
+			let price = 0;
+			if (letter=='A') {
+				price = 0.5;
+			}
+			if (letter=='B') {
+				price = 0.75;
+			}
+			if (letter=='C') {
+				price = 1;
+			}
+			return price;
+		}
+
+		/*
+		 * check whether we can checkout or not
+		 * @param current_select
+		 * @param current_coin
+		 * @param price 
+		 * @return checkout Boolean - true reach checkout requirement false not
+		 */
+		function checkToVend(current_select, current_coin, price) {
+			let checkOut = false;
+			if (current_select.letter && current_select.number) {
+				if (current_coin >= price) {
+					vend(current_select.letter + current_select.number);
+					checkOut = true;
+				}
+			}
+			return checkOut;
+		}
+	</script>
+
+
+</body>
+
+</html>
